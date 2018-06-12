@@ -162,6 +162,30 @@ class FlightInfo:
         str3 = 'created={} updated={}'.format(self.created, self.updated)
         return str1 + ' ' + str2 + ' ' + str3
 
+
+    def toDict(self):
+        message = {}
+        message['sid'] = self.sid
+        message['aid'] = self.aid
+        message['hex'] = self.hex
+        message['fid'] = self.fid
+        message['cs'] = self.cs
+        message['alt'] = self.alt
+        message['gs'] = self.gs
+        message['trk'] = self.trk
+        message['lat'] = self.lat
+        message['lng'] = self.lng
+        message['vr'] = self.vr
+        message['sq'] = self.sq
+        message['alrt'] = self.alrt
+        message['emer'] = self.emer
+        message['spi'] = self.spi
+        message['gnd'] = self.gnd
+        message['created'] = self.created
+        message['updated'] = self.updated
+        return message
+
+
     def prt(self):
         print('sid={} aid={} hex={} fid={} cs={} alt={} gs={} trk={}'.format(self.sid, self.aid, self.hex, self.fid, self.cs, self.alt, self.gs, self.trk))
         print('lat={} lan={} vr={} sq={} alrt={} emer={} spi={} gnd={}'.format(self.lat, self.lng, self.vr, self.sq, self.alrt, self.emer, self.spi, self.gnd))
