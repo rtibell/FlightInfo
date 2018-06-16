@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>My First Google Map</h1>
+
+<div id="googleMap" style="width:100%;height:400px;"></div>
+
+<script>
+// 59.050, 17.219
+// 58.818, 17.872
+function myMap(lat, lng) {
+	var map = mkMap(59.050, 17.219);
+	var mark1 = mkMark(59.050, 17.219, map);
+	var mark2 = mkMark(58.818, 17.872, map);
+	testWait();
+	var mark3 = mkMark(58.918, 17.472, map);
+}
+
+function mkMap(lat, lng) {
+var myCenter = new google.maps.LatLng(lat, lng);
+
+var mapProp= {
+    center:myCenter,
+    zoom:9,
+};
+
+var map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
+return map;
+}
+
+function mkMark(lat, lng, map) {
+var myCenter = new google.maps.LatLng(lat, lng);
+
+var marker = new google.maps.Marker({
+  position:myCenter,
+  animation:google.maps.Animation.NONE,
+  icon:'plain3.png'
+  });
+
+marker.setMap(map);
+return marker;
+}
+
+async function testWait() {
+    console.log('going to wait for 5 second');
+    await wait(5000);
+    console.log('finally wait is over');
+}
+
+function wait(time) {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve();
+        }, time);
+    });
+}
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDavKNF-bDs21WSuA1-H3BCetchZ4Iu060&callback=myMap"></script>
+
+</body>
+</html>
+
