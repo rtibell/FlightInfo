@@ -56,6 +56,7 @@
         return {
             strokeWeight: (selected ? 2 : 1),
             path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+            icon:'/web/plain3.png',
             scale: 5,
             fillColor: 'rgb('+r+','+g+','+b+')',
             fillOpacity: 0.9,
@@ -97,10 +98,14 @@
     }
 
     function fetchData() {
-        $.getJSON('/data.json', function(data) {
+        //$.getJSON('/data.json', function(data) {
+        $.getJSON('/plains', function(data) {
             var stillhere = {}
-            for (var j=0; j < data.length; j++) {
-                var plane = data[j];
+            if (!data.hasOwnProperty('Messages')) {
+                return;
+            }
+            for (var j=0; j < data.Messages.length; j++) {
+                var plane = data.Messages[j].Body;
                 var marker = null;
                 stillhere[plane.hex] = true;
                 plane.flight = $.trim(plane.flight);
@@ -133,12 +138,12 @@
                     /* Trap clicks for this marker. */
                     google.maps.event.addListener(marker, 'click', selectPlane);
                 }
-                if (plane.flight.length == 0)
+                if (plane.hasOwnProperty('flight') && plane.flight.length == 0)
                     marker.setTitle(plane.hex)
                 else
                     marker.setTitle(plane.flight+' ('+plane.hex+')')
             }
-            NumPlanes = data.length;
+            NumPlanes = data.Messages.length;
 
             /* Remove idle planes. */
             for (var p in Planes) {
