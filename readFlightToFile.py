@@ -12,13 +12,16 @@ dict = {}
 def main():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((INET_ADDRESS,INET_SOCKET))
+    outf = open("flightFile.dat","w")
     while True:
         obj = rdData(s)
         if obj is None:
             break
         if obj.isRecordChanged():
-            print(obj.toString())
+            print("change", obj.toString())
+            outf.write(obj.toString() + "\n")
     s.close()
+    outf.close()
     print('Final')
     print('=====')
     for k in dict.keys():
