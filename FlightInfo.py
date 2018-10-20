@@ -214,3 +214,7 @@ class FlightInfo:
 
     def getCurrTime(self):
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f") 
+
+    def getCurrTimeCompact(self):
+        return datetime.now().strftime("%Y%m%d-%H:%M:%S.%f") 
+
