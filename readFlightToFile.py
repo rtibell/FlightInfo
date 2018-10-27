@@ -12,26 +12,33 @@ dict = {}
 
 def main():
     curTime = getCurrTimeCompact()
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((INET_ADDRESS,INET_SOCKET))
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((INET_ADDRESS,INET_SOCKET))
     outfDat = open("flightFile_" + curTime +".dat","w+")
     outfLog = open("flightFile_" + curTime +".log","w+")
     outfCSV = open("flightFile_" + curTime +".csv","w+")
     outfSQL = open("flightFile_" + curTime +".sql","w+")
     outfCSV.write(FlightInfo.toCSVHeadString() + "\n")
     while True:
-        data = s.recv(1024)
-        outfLog.write(data + "\n")
-        obj = rdData(data)
-        if obj is None:
-            break
-        if obj.isRecordChanged():
-            #print("change", obj.toString())
-            outfDat.write(obj.toString() + "\n")
-            outfCSV.write(obj.toCSVString() + "\n")
-            outfSQL.write(obj.toSQLString() + "\n")
-            writeToDB(obj.toSQLString())
-    s.close()
+
+        for line in readlines(sock):
+            data = line
+            outfLog.write("|" + data + "|")
+            obj = rdData(data)
+            if obj is None:
+                outfLog.write("None|" + "\n")
+                break
+            if obj.isRecordChanged():
+                outfLog.write("Changed|" + "\n")
+                #print("change", obj.toString())
+                outfDat.write(obj.toString() + "\n")
+                outfCSV.write(obj.toCSVString() + "\n")
+                outfSQL.write(obj.toSQLString() + "\n")
+                writeToDB(obj.toSQLString())
+            else:
+                outfLog.write("Not changed|" + "\n")
+            
+    sock.close()
     outfDat.close()
     outfLog.close()
     outfCSV.close()
@@ -44,6 +51,19 @@ def main():
         print(dict[k].toString())
     outDict.close()
     print('Done!')
+
+
+def readlines(sock, recv_buffer=4096, delim='\n'):
+    buffer = ''
+    data = True
+    while data:
+        data = sock.recv(recv_buffer)
+        buffer += data
+        while buffer.find(delim) != -1:
+            line, buffer = buffer.split('\n', 1)
+            yield line
+    return
+
 
 def writeToDB(sqlstring):
     cnx = db.Connection(user='d35632-flight', passwd='LuckyStr1ke',
