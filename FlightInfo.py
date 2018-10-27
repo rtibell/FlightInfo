@@ -165,6 +165,22 @@ class FlightInfo:
         self.hex = msg[4] if len(msg[4]) > 0 else self.hex
         self.fid = msg[5] if len(msg[5]) > 0 else self.fid
 
+    @staticmethod
+    def toCSVHeadString():
+        str1 = 'sid;aid;hex;fid;cs;alt;gs;trk;lat;lan;vr;sq;alrt;emer;spi;gnd;created;updated;'
+        return str1
+
+    def toCSVString(self):
+        str1 = '{};{};{};{};{};{};{};{};'.format(self.sid, self.aid, self.hex, self.fid, self.cs, self.alt, self.gs, self.trk)
+        str2 = '{};{};{};{};{};{};{};{};'.format(self.lat, self.lng, self.vr, self.sq, self.alrt, self.emer, self.spi, self.gnd)
+        str3 = '{};{}'.format(self.created, self.updated)
+        return str1 + ' ' + str2 + ' ' + str3
+
+    def toSQLString(self):
+        str1 = 'sid={} aid={} hex={} fid={} cs={} alt={} gs={} trk={}'.format(self.sid, self.aid, self.hex, self.fid, self.cs, self.alt, self.gs, self.trk)
+        str2 = 'lat={} lan={} vr={} sq={} alrt={} emer={} spi={} gnd={}'.format(self.lat, self.lng, self.vr, self.sq, self.alrt, self.emer, self.spi, self.gnd)
+        str3 = 'created={} updated={}'.format(self.created, self.updated)
+        return str1 + ' ' + str2 + ' ' + str3
 
     def toString(self):
         str1 = 'sid={} aid={} hex={} fid={} cs={} alt={} gs={} trk={}'.format(self.sid, self.aid, self.hex, self.fid, self.cs, self.alt, self.gs, self.trk)
