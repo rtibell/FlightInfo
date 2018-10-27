@@ -19,11 +19,11 @@ class FlightInfo:
         self.lat = None # 14
         self.lng = None # 15
         self.vr = None # 16
-        self.sq = None # 17
-        self.alrt = None # 18
-        self.emer = None # 19
-        self.spi = None # 20
-        self.gnd = None # 21
+        self.sq = -1 # 17
+        self.alrt = -1 # 18
+        self.emer = -1 # 19
+        self.spi = -1 # 20
+        self.gnd = -1 # 21
         self.created = self.getCurrTime()
         self.updated = None
         self.oldchecksum = self.checksum(self.toChkString())
@@ -64,7 +64,7 @@ class FlightInfo:
             "CLK": self.doCLK,
             "MSG": self.doMSG
         }
-        switcher.get(msg[0], lambda: "Invalide information type")(msg)
+        switcher.get(msg[0], lambda mt: "Invalide information type msg:" + mt)(msg)
    
     def doSEL(self, msg):
         print('SEL n/a msg=', msg)
@@ -177,10 +177,15 @@ class FlightInfo:
         return str1 + ' ' + str2 + ' ' + str3
 
     def toSQLString(self):
-        str1 = 'sid={} aid={} hex={} fid={} cs={} alt={} gs={} trk={}'.format(self.sid, self.aid, self.hex, self.fid, self.cs, self.alt, self.gs, self.trk)
-        str2 = 'lat={} lan={} vr={} sq={} alrt={} emer={} spi={} gnd={}'.format(self.lat, self.lng, self.vr, self.sq, self.alrt, self.emer, self.spi, self.gnd)
-        str3 = 'created={} updated={}'.format(self.created, self.updated)
-        return str1 + ' ' + str2 + ' ' + str3
+        cmd1 = 'insert into flightinfo '
+        cmd2 = '(sid, aid, hex, fid, cs, alt, gs, trk,'
+        cmd3 = 'lat, lan, vr, sq, alrt, emer, spi, gnd,'
+        cmd4 = 'created, updated) values('
+        str1 = '{}, {}, "{}", {}, "{}", {}, {}, {}, '.format(self.sid, self.aid, self.hex, self.fid, self.cs, self.alt, self.gs, self.trk)
+        str2 = '"{}", "{}", {}, {}, {}, {}, {}, {}, '.format(self.lat, self.lng, self.vr, self.sq, self.alrt, self.emer, self.spi, self.gnd)
+        str3 = '"{}", "{}")'.format(self.created, self.updated)
+        cmd5 = ';'
+        return cmd1 + ' ' + cmd2 + ' ' + cmd3 + ' ' + cmd4 + ' ' + str1 + ' ' + str2 + ' ' + str3 + cmd5
 
     def toString(self):
         str1 = 'sid={} aid={} hex={} fid={} cs={} alt={} gs={} trk={}'.format(self.sid, self.aid, self.hex, self.fid, self.cs, self.alt, self.gs, self.trk)
