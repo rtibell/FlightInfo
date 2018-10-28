@@ -26,21 +26,31 @@ class FlightInfo:
         self.gnd = None # 21
         self.created = self.getCurrTime()
         self.updated = None
-        self.oldchecksum = self.checksum(self.toString())
+        self.oldchecksum = self.checksum(self.toChkString())
         if msg is not None:
             self.rawDataDict = {}
             self.addMessage(msg)
 
     def addMessage(self, msg):
         if msg is not None:
-            self.oldchecksum = self.checksum(self.toString())
+            self.oldchecksum = self.checksum(self.toChkString())
             self.rawDataDict[msg[0]] = msg
             self.switchOnInfoType(msg)
             self.updated = self.getCurrTime()
             
 
     def isRecordChanged(self):
-        if self.oldchecksum == self.checksum(self.toString()):
+        if self.cs == None:
+            return False
+        if self.alt == None:
+            return False
+        if self.lat == None:
+            return False
+        if self.lng == None:
+            return False
+        if self.trk == None:
+            return False
+        if self.oldchecksum == self.checksum(self.toChkString()):
             return False
         else:
             return True
@@ -162,6 +172,11 @@ class FlightInfo:
         str3 = 'created={} updated={}'.format(self.created, self.updated)
         return str1 + ' ' + str2 + ' ' + str3
 
+    def toChkString(self):
+        str1 = 'hex={} cs={} alt={} trk={}'.format(self.hex, self.cs, self.alt, self.trk)
+        str2 = 'lat={} lan={}'.format(self.lat, self.lng)
+        return str1 + ' ' + str2
+
 
     def toDict(self):
         message = {}
@@ -199,3 +214,7 @@ class FlightInfo:
 
     def getCurrTime(self):
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f") 
+
+    def getCurrTimeCompact(self):
+        return datetime.now().strftime("%Y%m%d-%H:%M:%S.%f") 
+

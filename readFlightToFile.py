@@ -1,4 +1,5 @@
 import socket
+from datetime import datetime
 from FlightInfo import FlightInfo
 
 
@@ -10,19 +11,26 @@ global dict
 dict = {}
 
 def main():
+    curTime = getCurrTimeCompact()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((INET_ADDRESS,INET_SOCKET))
+    outf = open("flightFile_" + curTime +".dat","w+")
     while True:
         obj = rdData(s)
         if obj is None:
             break
         if obj.isRecordChanged():
-            print(obj.toString())
+            print("change", obj.toString())
+            outf.write(obj.toString() + "\n")
     s.close()
+    outf.close()
     print('Final')
     print('=====')
+    outDict = open("flightDict" + ".dat","a+")
     for k in dict.keys():
+        outDict.write(dict[k].toString() + "\n")
         print(dict[k].toString())
+    outDict.close()
     print('Done!')
 
 def rdData(s):
@@ -40,6 +48,8 @@ def rdData(s):
         dict[ky] = obj
     return obj
 
+def getCurrTimeCompact():
+    return datetime.now().strftime("%Y%m%d-%H:%M:%S")
 
 
 if __name__ == "__main__":
