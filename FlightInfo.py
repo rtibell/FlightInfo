@@ -1,6 +1,8 @@
 from time import gmtime, strftime
 from datetime import datetime
+from datetime import timedelta
 from datetime import date
+import uuid
 
 class FlightInfo:
     DEBUG = True
@@ -24,9 +26,13 @@ class FlightInfo:
         self.emer = -1 # 19
         self.spi = -1 # 20
         self.gnd = -1 # 21
-        self.created = self.getCurrTime()
+        self.created = None
         self.updated = None
+        self.rec_created = self.getCurrTime()
+        self.rec_updated = None
         self.oldchecksum = self.checksum(self.toChkString())
+        self.tm_created = None
+        self.path_id = uuid.uuid4()
         if msg is not None:
             self.rawDataDict = {}
             self.addMessage(msg)
@@ -36,7 +42,14 @@ class FlightInfo:
             self.oldchecksum = self.checksum(self.toChkString())
             self.rawDataDict[msg[0]] = msg
             self.switchOnInfoType(msg)
-            self.updated = self.getCurrTime()
+            self.rec_updated = self.getCurrTime()
+            date_time_created = datetime.strptime(self.created, '%Y-%m-%d %H:%M:%S.%f')
+            dt_now = datetime.now()
+            nxt_created = date_time_created + timedelta(0,60*15)
+            self.tm_created = date_time_created
+            if dt_now > nxt_created:
+                self.path_id = uuid.uuid4()
+                self.rec_created = self.getCurrTime()
             
 
     def isRecordChanged(self):
@@ -164,34 +177,41 @@ class FlightInfo:
         self.aid = msg[3] if len(msg[3]) > 0 else self.aid
         self.hex = msg[4] if len(msg[4]) > 0 else self.hex
         self.fid = msg[5] if len(msg[5]) > 0 else self.fid
+        created = msg[6].replace("/", "-") + " " + msg[7] 
+        self.created = created if len(created) > 20 else self.created
+        updated = msg[8].replace("/", "-") + " " + msg[9] 
+        self.updated = updated if len(updated) > 20 else self.updated
 
     @staticmethod
     def toCSVHeadString():
-        str1 = 'sid;aid;hex;fid;cs;alt;gs;trk;lat;lan;vr;sq;alrt;emer;spi;gnd;created;updated;'
+        str1 = 'sid;aid;hex;fid;cs;alt;gs;trk;lat;lan;vr;sq;alrt;emer;spi;gnd;rec_created;rec_updated;'
         return str1
 
     def toCSVString(self):
         str1 = '{};{};{};{};{};{};{};{};'.format(self.sid, self.aid, self.hex, self.fid, self.cs, self.alt, self.gs, self.trk)
         str2 = '{};{};{};{};{};{};{};{};'.format(self.lat, self.lng, self.vr, self.sq, self.alrt, self.emer, self.spi, self.gnd)
-        str3 = '{};{}'.format(self.created, self.updated)
+        str3 = '{};{};{};{}'.format(self.created, self.updated,self.rec_created, self.rec_updated)
         return str1 + ' ' + str2 + ' ' + str3
 
     def toSQLString(self):
         cmd1 = 'insert into flightinfo '
         cmd2 = '(sid, aid, hex, fid, cs, alt, gs, trk,'
         cmd3 = 'lat, lan, vr, sq, alrt, emer, spi, gnd,'
-        cmd4 = 'created, updated) values('
+        cmd4 = 'created, updated, rec_created, rec_updated, path_id) values('
         str1 = '{}, {}, "{}", {}, "{}", {}, {}, {}, '.format(self.sid, self.aid, self.hex, self.fid, self.cs, self.alt, self.gs, self.trk)
         str2 = '"{}", "{}", {}, {}, {}, {}, {}, {}, '.format(self.lat, self.lng, self.vr, self.sq, self.alrt, self.emer, self.spi, self.gnd)
-        str3 = '"{}", "{}")'.format(self.created, self.updated)
+        str3 = '"{}", "{}", '.format(self.created, self.updated)
+        str4 = '"{}", "{}",'.format(self.rec_created, self.rec_updated)
+        str5 = '"{}")'.format(self.path_id)
         cmd5 = ';'
-        return cmd1 + ' ' + cmd2 + ' ' + cmd3 + ' ' + cmd4 + ' ' + str1 + ' ' + str2 + ' ' + str3 + cmd5
+        return cmd1 + ' ' + cmd2 + ' ' + cmd3 + ' ' + cmd4 + ' ' + str1 + ' ' + str2 + ' ' + str3 + ' ' + str4 + ' ' + str5 + cmd5
 
     def toString(self):
         str1 = 'sid={} aid={} hex={} fid={} cs={} alt={} gs={} trk={}'.format(self.sid, self.aid, self.hex, self.fid, self.cs, self.alt, self.gs, self.trk)
         str2 = 'lat={} lan={} vr={} sq={} alrt={} emer={} spi={} gnd={}'.format(self.lat, self.lng, self.vr, self.sq, self.alrt, self.emer, self.spi, self.gnd)
         str3 = 'created={} updated={}'.format(self.created, self.updated)
-        return str1 + ' ' + str2 + ' ' + str3
+        str4 = 'rec_created={} rec_updated={}'.format(self.rec_created, self.rec_updated)
+        return str1 + ' ' + str2 + ' ' + str3 + ' ' + str4
 
     def toChkString(self):
         str1 = 'hex={} cs={} alt={} trk={}'.format(self.hex, self.cs, self.alt, self.trk)
@@ -217,15 +237,15 @@ class FlightInfo:
         message['emer'] = self.emer
         message['spi'] = self.spi
         message['gnd'] = self.gnd
-        message['created'] = self.created
-        message['updated'] = self.updated
+        message['rec_created'] = self.rec_created
+        message['rec_updated'] = self.rec_updated
         return message
 
 
     def prt(self):
         print('sid={} aid={} hex={} fid={} cs={} alt={} gs={} trk={}'.format(self.sid, self.aid, self.hex, self.fid, self.cs, self.alt, self.gs, self.trk))
         print('lat={} lan={} vr={} sq={} alrt={} emer={} spi={} gnd={}'.format(self.lat, self.lng, self.vr, self.sq, self.alrt, self.emer, self.spi, self.gnd))
-        print('created={} updated={}'.format(self.created, self.updated))
+        print('rec_created={} rec_updated={}'.format(self.rec_created, self.rec_updated))
 
     # returns total as checksum
     # input - string
