@@ -14,11 +14,11 @@ def main():
     curTime = getCurrTimeCompact()
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((INET_ADDRESS,INET_SOCKET))
-    outfDat = open("flightFile_" + curTime +".dat","w+")
+    #outfDat = open("flightFile_" + curTime +".dat","w+")
     outfLog = open("flightFile_" + curTime +".log","w+")
-    outfCSV = open("flightFile_" + curTime +".csv","w+")
+    #outfCSV = open("flightFile_" + curTime +".csv","w+")
     outfSQL = open("flightFile_" + curTime +".sql","w+")
-    outfCSV.write(FlightInfo.toCSVHeadString() + "\n")
+    #outfCSV.write(FlightInfo.toCSVHeadString() + "\n")
     while True:
 
         for line in readlines(sock):
@@ -31,17 +31,18 @@ def main():
             if obj.isRecordChanged():
                 outfLog.write("Changed|" + "\n")
                 #print("change", obj.toString())
-                outfDat.write(obj.toString() + "\n")
-                outfCSV.write(obj.toCSVString() + "\n")
+                #outfDat.write(obj.toString() + "\n")
+                #outfCSV.write(obj.toCSVString() + "\n")
                 outfSQL.write(obj.toSQLString() + "\n")
                 writeToDB(obj.toSQLString())
+                obj.dataWritten()
             else:
                 outfLog.write("Not changed|" + "\n")
             
     sock.close()
-    outfDat.close()
+    #outfDat.close()
     outfLog.close()
-    outfCSV.close()
+    #outfCSV.close()
     outfSQL.close()
     print('Final')
     print('=====')

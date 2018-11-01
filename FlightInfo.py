@@ -5,7 +5,7 @@ from datetime import date
 import uuid
 
 class FlightInfo:
-    DEBUG = True
+    DEBUG = False
 
     def __init__(self, msg = None):
         if self.DEBUG:
@@ -33,21 +33,27 @@ class FlightInfo:
         self.oldchecksum = self.checksum(self.toChkString())
         self.tm_created = None
         self.path_id = uuid.uuid4()
+        self.new_path = True
+        #self.flight_dict = {}
         if msg is not None:
-            self.rawDataDict = {}
             self.addMessage(msg)
 
     def addMessage(self, msg):
         if msg is not None:
             self.oldchecksum = self.checksum(self.toChkString())
-            self.rawDataDict[msg[0]] = msg
+            if self.DEBUG:
+                self.rawDataDict[msg[0]] = msg
             self.switchOnInfoType(msg)
             self.rec_updated = self.getCurrTime()
-            date_time_created = datetime.strptime(self.created, '%Y-%m-%d %H:%M:%S.%f')
+            date_time_created = datetime.strptime(self.rec_created, '%Y-%m-%d %H:%M:%S.%f')
             dt_now = datetime.now()
             nxt_created = date_time_created + timedelta(0,60*15)
             self.tm_created = date_time_created
-            if dt_now > nxt_created:
+            timediff = nxt_created - dt_now
+            #print("hex: " + str(self.hex) + " cs: " + str(self.cs) + " diff: " + str(timediff.seconds) + " now:" + dt_now.strftime("%Y-%m-%d %H:%M:%S.%f") + "  created: " + nxt_created.strftime("%Y-%m-%d %H:%M:%S.%f"))
+            if timediff.days < 0:
+                if self.DEBUG:
+                    print("now:" + dt_now.strftime("%Y-%m-%d %H:%M:%S.%f") + "  created: " + nxt_created.strftime("%Y-%m-%d %H:%M:%S.%f"))
                 self.path_id = uuid.uuid4()
                 self.rec_created = self.getCurrTime()
             
@@ -67,6 +73,10 @@ class FlightInfo:
             return False
         else:
             return True
+
+    def dataWritten(self):
+        self.new_path = False
+
 
     def switchOnInfoType(self, msg):
         switcher = {
@@ -197,12 +207,12 @@ class FlightInfo:
         cmd1 = 'insert into flightinfo '
         cmd2 = '(sid, aid, hex, fid, cs, alt, gs, trk,'
         cmd3 = 'lat, lan, vr, sq, alrt, emer, spi, gnd,'
-        cmd4 = 'created, updated, rec_created, rec_updated, path_id) values('
+        cmd4 = 'created, updated, rec_created, rec_updated, path_id, new_path) values('
         str1 = '{}, {}, "{}", {}, "{}", {}, {}, {}, '.format(self.sid, self.aid, self.hex, self.fid, self.cs, self.alt, self.gs, self.trk)
         str2 = '"{}", "{}", {}, {}, {}, {}, {}, {}, '.format(self.lat, self.lng, self.vr, self.sq, self.alrt, self.emer, self.spi, self.gnd)
         str3 = '"{}", "{}", '.format(self.created, self.updated)
         str4 = '"{}", "{}",'.format(self.rec_created, self.rec_updated)
-        str5 = '"{}")'.format(self.path_id)
+        str5 = '"{}",{})'.format(self.path_id, self.new_path)
         cmd5 = ';'
         return cmd1 + ' ' + cmd2 + ' ' + cmd3 + ' ' + cmd4 + ' ' + str1 + ' ' + str2 + ' ' + str3 + ' ' + str4 + ' ' + str5 + cmd5
 
@@ -210,7 +220,7 @@ class FlightInfo:
         str1 = 'sid={} aid={} hex={} fid={} cs={} alt={} gs={} trk={}'.format(self.sid, self.aid, self.hex, self.fid, self.cs, self.alt, self.gs, self.trk)
         str2 = 'lat={} lan={} vr={} sq={} alrt={} emer={} spi={} gnd={}'.format(self.lat, self.lng, self.vr, self.sq, self.alrt, self.emer, self.spi, self.gnd)
         str3 = 'created={} updated={}'.format(self.created, self.updated)
-        str4 = 'rec_created={} rec_updated={}'.format(self.rec_created, self.rec_updated)
+        str4 = 'rec_created={} rec_updated={} path_id={} new_path={}'.format(self.rec_created, self.rec_updated, self.path_id, self.new_path)
         return str1 + ' ' + str2 + ' ' + str3 + ' ' + str4
 
     def toChkString(self):
